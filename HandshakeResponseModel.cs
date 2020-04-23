@@ -1,22 +1,49 @@
-using System;
-using System.Runtime.InteropServices;
-
-[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-public struct HandshakeResponseModel
+namespace udp_test
 {
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 50)]
-    public char[] carName;
+    public class HandshakeResponseModel
+    {
+        private string _carName;
+        public string CarName
+        {
+            get => CleanRawString(_carName);
+            set => _carName = value;
+        }
 
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 50)]
-    public string driverName;
+        private string _driverName;
+        public string DriverName
+        {
+            get => CleanRawString(_driverName);
+            set => _driverName = value;
+        }
 
-    public UInt32 identifier;
+        public int Identifier { get; set; }
 
-    public UInt32 version;
+        public int Version { get; set; }
 
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 50)]
-    public string trackName;
+        private string _trackName;
+        public string TrackName
+        {
+            get => CleanRawString(_trackName);
+            set => _trackName = value;
+        }
 
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 50)]
-    public string trackConfig;
+        private string _trackConfig;
+        public string TrackConfig
+        {
+            get => CleanRawString(_trackConfig);
+            set => _trackConfig = value;
+        }
+
+        public override string ToString()
+            => $"Car Name: {CarName}\t Driver Name: {DriverName}\t Track Name: {TrackName}\t Track Config: {TrackConfig}";
+
+        /// <summary>
+        /// AC Seems to send handshake responses delemited oddly with % and some UTF-16LE garbage following it. 
+        /// Method returns everything after Unicode 37 if found, if not returns the raw string
+        /// </summary>
+        /// <param name="rawString"></param>
+        /// <returns></returns>
+        private string CleanRawString(string rawString)
+            => rawString.Substring(0, rawString.IndexOf("%") > 0 ? rawString.IndexOf("%") : rawString.Length);
+    }
 }
