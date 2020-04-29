@@ -16,7 +16,7 @@ namespace AiTelemetry.UdpReceiver.Datagrams
         /// <summary>
         /// Unknown identifier. Always outputs "a"
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 2)]
         public string identifier;
 
         /// <summary>
@@ -27,54 +27,50 @@ namespace AiTelemetry.UdpReceiver.Datagrams
         /// <summary>
         /// Velocity of the car
         /// </summary>
-        public struct vCar
-        {
-            public float kph;
-            public float mph;
-            public float ms;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public float[] vCar;
 
         /// <summary>
         /// Flag if ABS (anti-lock braking system) is currently enabled for the
         /// car
         /// </summary>
-        [MarshalAs(UnmanagedType.U8)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isAbsEnabled;
 
         /// <summary>
         /// Flag if ABS is engaged during this physics step
         /// </summary>
-        [MarshalAs(UnmanagedType.U8)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isAbsInAction;
 
         /// <summary>
         /// Flag if TC (traction control) is currently enabled
         /// </summary>
-        [MarshalAs(UnmanagedType.U8)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isTcEnabled;
 
         /// <summary>
         /// Flag if TC is engaged during this physics step
         /// </summary>
-        [MarshalAs(UnmanagedType.U8)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isTcInAction;
 
         /// <summary>
         /// Flag if the car is currently in the pits
         /// </summary>
-        [MarshalAs(UnmanagedType.U8)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isInPit;
 
         /// <summary>
         /// Flag if the car's engine limmiter is currenly on
         /// </summary>
-        [MarshalAs(UnmanagedType.U8)]
+        [MarshalAs(UnmanagedType.U1)]
         public bool isEngineLimiterOn;
 
         /// <summary>
         /// Unknown flag.!-- Marshaled as string to pad struct
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 2)]
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
         public string UnknownFlag1;
 
         /// <summary>
@@ -150,114 +146,86 @@ namespace AiTelemetry.UdpReceiver.Datagrams
         /// <summary>
         /// Rotational speed of the wheels in RPM
         /// </summary>
-        public struct nWheelSpeed
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] nWheelSpeed;
 
         /// <summary>
         /// Tyre slip angle
         /// </summary>
-        public struct aTyreSlip
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] aTyreSlip;
 
         /// <summary>
         /// Probably the pneumatic trail - TODO: confirm and rename
         /// </summary>
-        public struct aContactPatchSlip
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] aContactPatchSlip;
 
         /// <summary>
         /// Tyre longitudinal slip ratio 
         /// </summary>
-        public struct rTyreSlip
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] rTyreSlip;
 
         /// <summary>
         /// Some slip based measurement - Always outputs 0
         /// </summary>
-        public struct UnknownWheelStruct1
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] UnknownSlipParam1;
 
         /// <summary>
         /// Non directional slip
         /// </summary>
-        public struct ndSlip
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] ndSlip;
 
         /// <summary>
         /// Tyre vertical load in newtons 
         /// </summary>
-        public struct fZTyre
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] fZTyre;
 
         /// <summary>
         /// Linear displacement of dampers in meters? - TODO: verify units
         /// </summary>
-        public struct dYDamper
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] dYDamper;
 
         /// <summary>
         /// Tyre self aligning torque in N*m
         /// </summary>
-        public struct mZTyre
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] mZTyre;
 
         /// <summary>
         /// Amount of dirt on the tyres; seems to max out around 5
         /// </summary>
-        public struct nTyreDirtLevel
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] nTyreDirtLevel;
 
         /// <summary>
         /// Tyre camber angle in radians 
         /// </summary>
-        public struct aTyreCamber
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] aTyreCamber;
 
         /// <summary>
         /// Tyre radius with no load
         /// </summary>
-        public struct tyreRadius
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] tyreRadius;
 
         /// <summary>
         /// Tyre's current loaded radius 
         /// </summary>
-        public struct tyreLoadedRadius
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] tyreLoadedRadius;
 
         /// <summary>
         /// Car's current ride height from the ground in meters
         /// </summary>
-        public struct hRide
-        {
-            public float fL, fR, rL, rR;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public float[] hRide;
 
         /// <summary>
         /// Ratio of the lap distance completed 
@@ -272,11 +240,7 @@ namespace AiTelemetry.UdpReceiver.Datagrams
         /// <summary>
         /// Car position in world coordinates 
         /// </summary>
-        public struct sCar
-        {
-            public float x;
-            public float y;
-            public float z;
-        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public float[] sCar; // x,y,z
     }
 }

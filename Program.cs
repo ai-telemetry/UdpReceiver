@@ -52,6 +52,29 @@ namespace AiTelemetry.UdpReceiver
 
             // print result of handshake
             Console.WriteLine(handshakeOutput);
+
+            var updateRequest = new TelemetryServerConfigurationDatagram()
+            {
+                identifier = PlatformType.Web,
+                operationId = OperationType.SubscriberUpdate,
+                version = 1
+            };
+
+            requestByteArray = StructSerializer.Serialize(updateRequest);
+            client.Send(requestByteArray, Marshal.SizeOf(typeof(TelemetryServerConfigurationDatagram)));
+
+            responseByteArray = client.Receive(ref serverEndpoint);
+            var carData = StructSerializer.Deserialize<CarUpdateDatagram>(responseByteArray, 0);
+
+            var disconnect = new TelemetryServerConfigurationDatagram()
+            {
+                identifier = PlatformType.Web,
+                operationId = OperationType.Dismiss,
+                version = 1
+            };
+
+            requestByteArray = StructSerializer.Serialize(disconnect);
+            client.Send(requestByteArray, Marshal.SizeOf(typeof(TelemetryServerConfigurationDatagram)));
         }
     }
 }
