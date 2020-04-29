@@ -1,14 +1,14 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace udp_test
+namespace AiTelemetry.UdpReceiver.Utils
 {
-    public static class StructTools
+    public static class StructSerializer
     {
         /// <summary>
         /// converts byte[] to struct
         /// </summary>
-        public static T RawDeserialize<T>(byte[] rawData, int position)
+        public static T Deserialize<T>(byte[] rawData, int position)
         {
             int rawsize = Marshal.SizeOf(typeof(T));
             if (rawsize > rawData.Length - position)
@@ -23,7 +23,7 @@ namespace udp_test
         /// <summary>
         /// converts a struct to byte[]
         /// </summary>
-        public static byte[] RawSerialize(object anything)
+        public static byte[] Serialize(object anything)
         {
             int rawSize = Marshal.SizeOf(anything);
             IntPtr buffer = Marshal.AllocHGlobal(rawSize);

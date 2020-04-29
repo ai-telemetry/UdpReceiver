@@ -2,47 +2,53 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using AiTelemetry.UdpReceiver.Datagrams;
+using AiTelemetry.UdpReceiver.Models;
+using AiTelemetry.UdpReceiver.Utils;
 using AutoMapper;
 
-namespace udp_test
+namespace AiTelemetry.UdpReceiver
 {
     class Program
     {
-        static unsafe void Main(string[] args)
+        // currently disabling will make main actually use async later
+#pragma warning disable CS1998
+        static async Task Main(string[] args)
         {
+#pragma warning restore CS19998
             // udp server configuration
-            var serverIpAddress = IPAddress.Parse("192.168.1.203");
+            var serverIpAddress = IPAddress.Parse("192.168.1.53");
             var serverPort = 9996;
             var serverEndpoint = new IPEndPoint(serverIpAddress, serverPort);
 
             // automapper initialization for mapping interop DTOs => Models 
             // NTS: Install-Package AutoMapper.Extensions.Microsoft.DependencyInjection
             MapperConfiguration config = new MapperConfiguration(
-                cfg => cfg.CreateMap<HandshakeResponseDTO, HandshakeResponseModel>()
+                cfg => cfg.CreateMap<HandshakeResponseDatagram, HandshakeResponseModel>()
             );
 
             var mapper = new Mapper(config);
 
-            // set operationId to 0 to perform handshake with AC Server
-            var handshakeRequest = new HandshakeRequestDTO()
+            var handshakeRequest = new TelemetryServerConfigurationDatagram()
             {
-                identifier = 1,
+                identifier = PlatformType.Web,
                 version = 1,
-                operationId = 0
+                operationId = OperationType.Handshake
             };
 
             // serialize request 
-            var requestByteArray = StructTools.RawSerialize(handshakeRequest);
+            var requestByteArray = StructSerializer.Serialize(handshakeRequest);
 
             // send request and block for response 
             var client = new UdpClient();
             client.Connect(serverEndpoint);
-            client.Send(requestByteArray, Marshal.SizeOf(typeof(HandshakeRequestDTO)));
+            client.Send(requestByteArray, Marshal.SizeOf(typeof(TelemetryServerConfigurationDatagram)));
             var responseByteArray = client.Receive(ref serverEndpoint);
 
             // deserialize and map to model 
-            var handshakeResponse = StructTools.RawDeserialize<HandshakeResponseDTO>(responseByteArray, 0);
-            var handshakeOutput = mapper.Map<HandshakeResponseDTO, HandshakeResponseModel>(handshakeResponse);
+            var handshakeResponse = StructSerializer.Deserialize<HandshakeResponseDatagram>(responseByteArray, 0);
+            var handshakeOutput = mapper.Map<HandshakeResponseDatagram, HandshakeResponseModel>(handshakeResponse);
 
             // print result of handshake
             Console.WriteLine(handshakeOutput);
