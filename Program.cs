@@ -9,6 +9,9 @@ using AiTelemetry.UdpReceiver.Models;
 using AiTelemetry.UdpReceiver.Utils;
 using AutoMapper;
 using System.Buffers;
+using System.IO;
+using CsvHelper;
+using System.Globalization;
 
 namespace AiTelemetry.UdpReceiver
 {
@@ -24,7 +27,11 @@ namespace AiTelemetry.UdpReceiver
             // automapper initialization for mapping interop Datagrams => Models 
             // NTS: Install-Package AutoMapper.Extensions.Microsoft.DependencyInjection
             MapperConfiguration config = new MapperConfiguration(
-                cfg => cfg.CreateMap<HandshakeResponseDatagram, HandshakeResponseModel>()
+                cfg =>
+                {
+                    cfg.CreateMap<HandshakeResponseDatagram, HandshakeResponseModel>();
+                    cfg.CreateMap<CarUpdateDatagram, CarStateModel>();
+                }
             );
 
             var mapper = new Mapper(config);
@@ -47,7 +54,7 @@ namespace AiTelemetry.UdpReceiver
 
             // deserialize and map to model 
             var handshakeResponse = StructSerializer.Deserialize<HandshakeResponseDatagram>(responseByteArray, 0);
-            var handshakeOutput = mapper.Map<HandshakeResponseDatagram, HandshakeResponseModel>(handshakeResponse);
+            var handshakeOutput = mapper.Map<HandshakeResponseModel>(handshakeResponse);
 
             // print result of handshake
             Console.WriteLine(handshakeOutput);
@@ -60,10 +67,29 @@ namespace AiTelemetry.UdpReceiver
             };
 
             requestByteArray = StructSerializer.Serialize(updateRequest);
-            client.Send(requestByteArray, Marshal.SizeOf(typeof(TelemetryServerConfigurationDatagram)));
+            await client.SendAsync(requestByteArray, Marshal.SizeOf(typeof(TelemetryServerConfigurationDatagram)));
+
+            var path = $"telemetry/" +
+                $"{handshakeOutput.DriverName}/" +
+                $"{handshakeOutput.TrackName}/" +
+                $"{handshakeOutput.CarName}/";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            using var streamWriter = new StreamWriter($"{path}/{DateTime.Now.ToFileTime()}.csv");
+            using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
+            csvWriter.WriteHeader(typeof(CarStateModel));
 
             Console.CancelKeyPress += (sender, e) =>
             {
+                csvWriter.Flush();
+                streamWriter.Close();
+                csvWriter.Dispose();
+                streamWriter.Dispose();
+
                 var disconnect = new TelemetryServerConfigurationDatagram()
                 {
                     identifier = PlatformType.Web,
@@ -77,14 +103,14 @@ namespace AiTelemetry.UdpReceiver
                 Environment.Exit(0);
             };
 
-            await ProcessSubscriberUpdates(client);
+            await ProcessSubscriberUpdates(client, csvWriter, mapper);
         }
 
-        static async Task ProcessSubscriberUpdates(UdpClient client)
+        static async Task ProcessSubscriberUpdates(UdpClient client, CsvWriter csvWriter, Mapper mapper)
         {
             var pipe = new Pipe();
             var writeTask = FillPipeAsync(client, pipe.Writer);
-            var readTask = ReadPipeAsync(pipe.Reader);
+            var readTask = ReadPipeAsync(pipe.Reader, csvWriter, mapper);
 
             await Task.WhenAll(writeTask, readTask);
         }
@@ -111,7 +137,7 @@ namespace AiTelemetry.UdpReceiver
             await writer.CompleteAsync();
         }
 
-        static async Task ReadPipeAsync(PipeReader reader)
+        static async Task ReadPipeAsync(PipeReader reader, CsvWriter csvWriter, Mapper mapper)
         {
             while (true)
             {
@@ -123,9 +149,9 @@ namespace AiTelemetry.UdpReceiver
                     var carData = StructSerializer
                         .Deserialize<CarUpdateDatagram>(completeDatagram.ToArray(), 0);
 
-                    // simulate some IO backpressure to see if pipeline works 
-                    // Thread.Sleep(100);
-                    Console.WriteLine(carData.nEngineRpm);
+                    var carModel = mapper.Map<CarStateModel>(carData);
+                    csvWriter.NextRecord();
+                    csvWriter.WriteRecord(carModel);
                 }
 
                 reader.AdvanceTo(buffer.Start, buffer.End);
